@@ -30,6 +30,7 @@ div {
 
 .Square {
   height: 100%;
+  aspect-ratio: 1;
 }
 
 .Square-Light {
@@ -59,6 +60,9 @@ div {
 }
 
 .Checker-destination {
+  height: 70%;
+  width: 70%;
   border-color: #9ecaed;
   box-shadow: 0 0 10px #9ecaed;
+  /* box-sizing: border-box; */
 }

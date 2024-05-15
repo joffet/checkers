@@ -1,47 +1,16 @@
-import React, { Dispatch, ReactNode, SetStateAction, useState } from "react";
+import React, { ReactNode, useState } from "react";
 import "./App.css";
-
-const initRedCheckersArray = [
-  { x: 2, y: 1 },
-  { x: 4, y: 1 },
-  { x: 6, y: 1 },
-  { x: 8, y: 1 },
-  { x: 1, y: 2 },
-  { x: 3, y: 2 },
-  { x: 5, y: 2 },
-  { x: 7, y: 2 },
-  { x: 2, y: 3 },
-  { x: 4, y: 3 },
-  { x: 6, y: 3 },
-  { x: 8, y: 3 },
-];
-
-const initBlackCheckersArray: SquareInputsArray = [
-  { x: 1, y: 6 },
-  { x: 3, y: 6 },
-  { x: 5, y: 6 },
-  { x: 7, y: 6 },
-  { x: 2, y: 7 },
-  { x: 4, y: 7 },
-  { x: 6, y: 7 },
-  { x: 8, y: 7 },
-  { x: 1, y: 8 },
-  { x: 3, y: 8 },
-  { x: 5, y: 8 },
-  { x: 7, y: 8 },
-];
-
-type SquareInputs = {
-  x: number;
-  y: number;
-  isKing?: boolean;
-  index?: number;
-  content?: SquareContent;
-};
-
-type SquareInputsArray = [] | SquareInputs[];
-
-type SquareContent = "red" | "black" | "destination" | undefined;
+import Square from "./Square";
+import {
+  CheckerColor,
+  SetHoverCoordinates,
+  SquareContent,
+  SquareInputs,
+  SquareInputsArray,
+  initBlackCheckersArray,
+  initRedCheckersArray,
+} from "./Types";
+import { getEligibleMovesArray } from "./Logic";
 
 export default function App() {
   const [redCheckersArray, setRedCheckersArray] =
@@ -50,9 +19,6 @@ export default function App() {
     useState<SquareInputsArray>(initBlackCheckersArray);
   const [eligibleDestinationsArray, setEligibleDestinationsArray] =
     useState<SquareInputsArray>([]);
-  const [hoverCoordinates, setHoverCoordinates] = useState<
-    SquareInputs | undefined
-  >();
 
   const squareContent = (x: number, y: number): SquareContent => {
     if (isCoordsInArray(x, y, eligibleDestinationsArray)) return "destination";
@@ -91,57 +57,28 @@ export default function App() {
     return array;
   };
 
+  const setHoverCoordinates = (coords: SetHoverCoordinates) => {
+    if (coords) {
+      setEligibleDestinationsArray(
+        getEligibleMovesArray({
+          x: coords.x,
+          y: coords.y,
+          color: coords.color,
+          redCheckersArray,
+          blackCheckersArray,
+          isKing: coords.isKing,
+        })
+      );
+    } else {
+      setEligibleDestinationsArray([]);
+    }
+  };
+
   return (
     <div className="Container">
       <div className="Board-Outer">
         <div className="Board-Inner">{getSquaresArray()}</div>
       </div>
-    </div>
-  );
-}
-
-function Square({
-  x,
-  y,
-  isKing,
-  index,
-  content,
-  setHoverCoordinates,
-}: {
-  x: number;
-  y: number;
-  isKing?: boolean;
-  index: number;
-  content: SquareContent;
-  setHoverCoordinates: Dispatch<SetStateAction<SquareInputs | undefined>>;
-}) {
-  const isOnEvenRow = Math.ceil(index / 8 || 1) % 2 === 0;
-  const isOnEvenColumn = (index % 8) % 2 === 0;
-  const isLight =
-    (isOnEvenColumn && isOnEvenRow) || (!isOnEvenColumn && !isOnEvenRow);
-
-  const handleMouseEnter = () => {
-    if (content !== "red" && content !== "black") return;
-    setHoverCoordinates({ x, y });
-  };
-
-  const handleMouseLeave = () => {
-    if (content !== "red" && content !== "black") return;
-    setHoverCoordinates(undefined);
-  };
-
-  return (
-    <div
-      className={`Square ${isLight ? "Square-Light" : "Square-Dark"}`}
-      key={index}
-    >
-      {content && (
-        <div
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          className={`Checker Checker-${content}`}
-        ></div>
-      )}
     </div>
   );
 }
