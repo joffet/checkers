@@ -16,6 +16,7 @@ export default function Square({
   setStartDragging,
   squareBeingDragged,
   dragValues,
+  isRedTurn,
 }: {
   x: number;
   y: number;
@@ -26,6 +27,7 @@ export default function Square({
   setStartDragging: (arg0: SquareInputs) => void;
   squareBeingDragged: SquareInputs | undefined;
   dragValues: DragValues;
+  isRedTurn: boolean;
 }) {
   const isOnEvenRow = Math.ceil(index / 8 || 1) % 2 === 0;
   const isOnEvenColumn = (index % 8) % 2 === 0;
@@ -49,8 +51,8 @@ export default function Square({
   };
 
   const handleMouseDown = (squareInputs: SquareInputs) => {
-    if (content !== "red" && content !== "black") return;
-    setStartDragging(squareInputs);
+    if ((content === "red" && isRedTurn) || (content === "black" && !isRedTurn))
+      setStartDragging(squareInputs);
   };
 
   const isThisCheckerBeingDragged =

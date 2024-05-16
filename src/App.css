@@ -9,6 +9,7 @@ div {
   background-repeat: repeat;
   width: 100%;
   min-height: 100vh;
+  flex-direction: column;
 }
 
 .Board-Outer {
@@ -76,4 +77,38 @@ div {
   border-style: unset;
   border-color: #33cc33;
   box-shadow: 0 0 10px #33cc33;
+}
+
+.Checker-score {
+  height: 60px;
+  width: 60px;
+  font-size: 36px;
+  color: white;
+}
+
+.Headshot {
+  margin: 10px;
+  height: 100px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 15px;
+  border: solid 4px black;
+}
+
+.Turn-banner {
+  margin: 10px;
+  height: 100px;
+  width: 200px;
+  border-radius: 15px;
+  font-size: 36;
+  font-weight: bold;
+}
+.Turn-banner-black {
+  background-color: rgba(0, 0, 0, 0.5);
+  border: solid 4px black;
+  color: white;
+}
+.Turn-banner-red {
+  background-color: rgba(255, 0, 0, 0.8);
+  border: solid 4px red;
+  color: white;
 }

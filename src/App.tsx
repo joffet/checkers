@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useRef, useState } from "react";
+import React, { ReactNode, useRef, useState } from "react";
 import "./App.css";
 import Square from "./Square";
 import {
@@ -14,6 +14,7 @@ import { getEligibleMovesArray } from "./Logic";
 
 export default function App() {
   // state
+  const [isRedTurn, setIsRedTurn] = useState(false);
   const [checkersArray, setCheckersArray] = useState(initCheckersArray);
   const [dragValues, setDragValues] = useState<DragValues>(initDragValues);
   const [squareBeingDragged, setSquareBeingDragged] = useState<
@@ -49,21 +50,27 @@ export default function App() {
           setStartDragging,
           squareBeingDragged,
           dragValues,
+          isRedTurn,
         })
       );
     }
     return array;
   };
 
-  const setHoverCoordinates = (coords: SetHoverCoordinates) => {
+  const setHoverCoordinates = (square: SetHoverCoordinates) => {
+    if (
+      (square?.content === "red" && !isRedTurn) ||
+      (square?.content === "black" && isRedTurn)
+    )
+      return;
     let eligibleDestinationsArray: SquareInputsArray = [];
-    if (coords) {
+    if (square) {
       eligibleDestinationsArray = getEligibleMovesArray({
-        x: coords.x,
-        y: coords.y,
-        content: coords.content,
+        x: square.x,
+        y: square.y,
+        content: square.content,
         checkersArray,
-        isKing: coords.isKing,
+        isKing: square.isKing,
       });
     }
     const newCheckersArray = checkersArray.filter(
@@ -95,27 +102,39 @@ export default function App() {
   };
 
   const handleMouseUp = () => {
+    const targetX = dragValues.hoverX;
+    const targetY = dragValues.hoverY;
     const targetContent = checkersArray.find(
-      (e) => e.x === dragValues.hoverX && e.y === dragValues.hoverY
+      (e) => e.x === targetX && e.y === targetY
     )?.content;
     if (targetContent === "eligibleDestination") {
-      const sourceX = squareBeingDragged?.x;
-      const sourceY = squareBeingDragged?.y;
+      const sourceX = squareBeingDragged?.x || 0;
+      const sourceY = squareBeingDragged?.y || 0;
+
+      // check if the move was a jump
+      const isJump = Math.abs(targetX - (sourceX || 0)) > 1;
+      const jumpedCheckerCoords = {
+        x: sourceX > targetX ? sourceX - 1 : sourceX + 1,
+        y: sourceY > targetY ? sourceY - 1 : sourceY + 1,
+      };
       const newCheckersArray = checkersArray.filter(
         (e) =>
           e.content !== "eligibleDestination" &&
-          ((e.x !== sourceX && e.y === sourceY) ||
-            (e.x === sourceX && e.y !== sourceY) ||
-            (e.x !== sourceX && e.y !== sourceY))
+          !(e.x === sourceX && e.y === sourceY) &&
+          // if was a jump, then remove the jumped checker
+          !(
+            isJump &&
+            e.x === jumpedCheckerCoords.x &&
+            e.y === jumpedCheckerCoords.y
+          )
       );
-      // .map((e) => Object.assign({}, e));
-      console.log({ newCheckersArray });
       newCheckersArray.push({
-        x: dragValues.hoverX,
-        y: dragValues.hoverY,
+        x: targetX,
+        y: targetY,
         content: squareBeingDragged?.content,
       });
       setCheckersArray(newCheckersArray);
+      setIsRedTurn(!isRedTurn);
     }
     setSquareBeingDragged(undefined); // reset square being dragged
     setDragValues(initDragValues); // reset dragging values
@@ -123,6 +142,19 @@ export default function App() {
 
   return (
     <div className="Container">
+      <div>
+        <div
+          style={{ display: !isRedTurn ? "none" : "" }}
+          className="Turn-banner Turn-banner-red"
+        >
+          Rey's Turn
+        </div>
+
+        <img src="rey.png" className="Headshot" alt="Rey" />
+        <div className="Checker Checker-red Checker-score">
+          {12 - checkersArray.filter((e) => e.content === "black").length}
+        </div>
+      </div>
       <div className="Board-Outer">
         <div ref={ref} className="Board-Inner" onMouseMove={handleMouseMove}>
           {getSquaresArray()}
@@ -140,6 +172,18 @@ export default function App() {
             }}
             className={`Checker Checker-${squareBeingDragged?.content}`}
           />
+        </div>
+      </div>
+      <div>
+        <div
+          style={{ display: isRedTurn ? "none" : "" }}
+          className="Turn-banner Turn-banner-black"
+        >
+          Kylo's Turn
+        </div>
+        <img src="kylo.png" className="Headshot" alt="Kylo" />
+        <div className="Checker Checker-black Checker-score">
+          {12 - checkersArray.filter((e) => e.content === "red").length}
         </div>
       </div>
     </div>

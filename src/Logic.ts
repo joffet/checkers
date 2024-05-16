@@ -56,7 +56,7 @@ export const getEligibleMovesArray = ({
   checkersArray: SquareInputsArray;
   content: SquareContent;
   isKing?: boolean;
-}) => {
+}): SquareInputsArray => {
   let array = [];
   const canMoveUp = content === "black" || isKing;
   const canMoveDown = content === "red" || isKing;
@@ -69,6 +69,8 @@ export const getEligibleMovesArray = ({
       checkersArray,
       content,
     });
+    if (Math.abs((topLeftOption?.x || 0) - x) > 1)
+      return [topLeftOption] as SquareInputsArray; // jump option is only option
     if (topLeftOption) array.push(topLeftOption);
     const topRightOption = coordsForValidMove({
       targetX: x + 1,
@@ -78,6 +80,8 @@ export const getEligibleMovesArray = ({
       checkersArray,
       content,
     });
+    if (Math.abs((topRightOption?.x || 0) - x) > 1)
+      return [topRightOption] as SquareInputsArray; // jump option is only option
     if (topRightOption) array.push(topRightOption);
   }
   if (canMoveDown) {
@@ -89,6 +93,8 @@ export const getEligibleMovesArray = ({
       checkersArray,
       content,
     });
+    if (Math.abs((bottomLeftOption?.x || 0) - x) > 1)
+      return [bottomLeftOption] as SquareInputsArray; // jump option is only option
     if (bottomLeftOption) array.push(bottomLeftOption);
     const bottomRightOption = coordsForValidMove({
       targetX: x + 1,
@@ -98,7 +104,13 @@ export const getEligibleMovesArray = ({
       checkersArray,
       content,
     });
+    if (Math.abs((bottomRightOption?.x || 0) - x) > 1)
+      return [bottomRightOption] as SquareInputsArray; // jump option is only option
     if (bottomRightOption) array.push(bottomRightOption);
   }
   return array;
+};
+
+export const getScore = (checkersArray: SquareInputsArray) => {
+  return;
 };
