@@ -1,4 +1,4 @@
-import { SquareContent, CheckerColor, SetHoverCoordinates } from "./Types";
+import { SquareContent, SetHoverCoordinates, SquareInputs } from "./Types";
 
 export default function Square({
   x,
@@ -7,6 +7,8 @@ export default function Square({
   index,
   content,
   setHoverCoordinates,
+  setStartDragging,
+  squareBeingDragged,
 }: {
   x: number;
   y: number;
@@ -14,27 +16,40 @@ export default function Square({
   index: number;
   content: SquareContent;
   setHoverCoordinates: (coords: SetHoverCoordinates) => void;
+  setStartDragging: (arg0: SquareInputs) => void;
+  squareBeingDragged: SquareInputs | undefined;
 }) {
+  // const [isDraggingSource, setIsDraggingSource] = setState(false);
   const isOnEvenRow = Math.ceil(index / 8 || 1) % 2 === 0;
   const isOnEvenColumn = (index % 8) % 2 === 0;
   const isLight =
     (isOnEvenColumn && isOnEvenRow) || (!isOnEvenColumn && !isOnEvenRow);
 
   const handleMouseEnter = () => {
-    if (content === "red" || content === "black") {
-      setHoverCoordinates({
-        x,
-        y,
-        color: content as CheckerColor | "black",
-        isKing: isKing || false,
-      });
-    }
+    if (content !== "red" && content !== "black") return;
+    setHoverCoordinates({
+      x,
+      y,
+      content,
+      isKing: isKing || false,
+    });
   };
 
   const handleMouseLeave = () => {
     if (content !== "red" && content !== "black") return;
     setHoverCoordinates(undefined);
   };
+
+  const handleMouseDown = (squareInputs: SquareInputs) => {
+    if (content !== "red" && content !== "black") return;
+    setStartDragging(squareInputs);
+    // setIsDraggingSource(true);
+  };
+
+  const isThisCheckerBeingDragged =
+    squareBeingDragged &&
+    squareBeingDragged.x === x &&
+    squareBeingDragged.y === y;
 
   return (
     <div
@@ -45,9 +60,14 @@ export default function Square({
         <div
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
+          onMouseDown={() => handleMouseDown({ x, y, content, isKing })}
           className={`Checker Checker-${content}`}
+          style={{ display: isThisCheckerBeingDragged ? "none" : "" }}
         ></div>
       )}
     </div>
   );
+}
+function setState(arg0: boolean): [any, any] {
+  throw new Error("Function not implemented.");
 }

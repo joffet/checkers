@@ -1,42 +1,32 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, RefObject, useRef, useState } from "react";
 import "./App.css";
 import Square from "./Square";
 import {
-  CheckerColor,
   SetHoverCoordinates,
   SquareContent,
   SquareInputs,
   SquareInputsArray,
-  initBlackCheckersArray,
-  initRedCheckersArray,
+  initCheckersArray,
 } from "./Types";
 import { getEligibleMovesArray } from "./Logic";
 
 export default function App() {
-  const [redCheckersArray, setRedCheckersArray] =
-    useState(initRedCheckersArray);
-  const [blackCheckersArray, seBlackCheckersArray] =
-    useState<SquareInputsArray>(initBlackCheckersArray);
-  const [eligibleDestinationsArray, setEligibleDestinationsArray] =
-    useState<SquareInputsArray>([]);
+  const [checkersArray, setCheckersArray] = useState(initCheckersArray);
+  const [dragValues, setDragValues] = useState({ top: 0, left: 0, width: 0 });
+  const [squareBeingDragged, setSquareBeingDragged] = useState<
+    SquareInputs | undefined
+  >(undefined);
+  const ref = useRef<HTMLDivElement | null>(null);
+  const rectRef = useRef<DOMRect | undefined>();
 
-  const squareContent = (x: number, y: number): SquareContent => {
-    if (isCoordsInArray(x, y, eligibleDestinationsArray)) return "destination";
-    if (isCoordsInArray(x, y, redCheckersArray)) return "red";
-    if (isCoordsInArray(x, y, blackCheckersArray)) return "black";
-    return undefined;
+  const getSquareContent = (x: number, y: number): SquareContent => {
+    const square = checkersArray.find((e) => e.x === x && e.y === y);
+    return square?.content;
   };
 
-  const isCoordsInArray = (x: number, y: number, array: SquareInputsArray) => {
-    let result = false;
-    for (let index = 0; index < array.length; index++) {
-      const dest: SquareInputs = array[index];
-      if (dest.x === x && dest.y === y) {
-        result = true;
-        break;
-      }
-    }
-    return result;
+  const setStartDragging = (square: SquareInputs) => {
+    setSquareBeingDragged(square);
+    rectRef.current = ref.current?.getBoundingClientRect();
   };
 
   const getSquaresArray = () => {
@@ -49,8 +39,10 @@ export default function App() {
           x,
           y,
           index,
-          content: squareContent(x, y),
+          content: getSquareContent(x, y),
           setHoverCoordinates,
+          setStartDragging,
+          squareBeingDragged,
         })
       );
     }
@@ -58,26 +50,59 @@ export default function App() {
   };
 
   const setHoverCoordinates = (coords: SetHoverCoordinates) => {
+    let eligibleDestinationsArray: SquareInputsArray = [];
     if (coords) {
-      setEligibleDestinationsArray(
-        getEligibleMovesArray({
-          x: coords.x,
-          y: coords.y,
-          color: coords.color,
-          redCheckersArray,
-          blackCheckersArray,
-          isKing: coords.isKing,
-        })
-      );
-    } else {
-      setEligibleDestinationsArray([]);
+      eligibleDestinationsArray = getEligibleMovesArray({
+        x: coords.x,
+        y: coords.y,
+        content: coords.content,
+        checkersArray,
+        isKing: coords.isKing,
+      });
     }
+    const newCheckersArray = checkersArray.filter(
+      (e) => e.content !== "eligibleDestination"
+    );
+    for (let index = 0; index < eligibleDestinationsArray.length; index++) {
+      const squareData = Object.assign({}, eligibleDestinationsArray[index]);
+      squareData.content = "eligibleDestination";
+      newCheckersArray.push(squareData);
+    }
+    setCheckersArray(newCheckersArray);
   };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const width = rectRef.current ? (rectRef.current.width / 8) * 0.7 : 0;
+    setDragValues({
+      top: e.pageY - (rectRef.current?.top || 0) - width / 2,
+      left: e.pageX - (rectRef.current?.left || 0) - width / 2,
+      width,
+    });
+  };
+
+  document.addEventListener("mouseup", function handleMouseDown(e) {
+    console.log("mouse up");
+    console.log({ x: e.pageX - (rectRef.current?.left || 0) });
+    setSquareBeingDragged(undefined);
+  });
 
   return (
     <div className="Container">
       <div className="Board-Outer">
-        <div className="Board-Inner">{getSquaresArray()}</div>
+        <div ref={ref} className="Board-Inner" onMouseMove={handleMouseMove}>
+          {getSquaresArray()}
+          <div
+            style={{
+              height: dragValues.width,
+              width: dragValues.width,
+              position: "absolute",
+              top: dragValues.top,
+              left: dragValues.left,
+              display: squareBeingDragged ? "block" : "none",
+            }}
+            className={`Checker Checker-${squareBeingDragged?.content}`}
+          />
+        </div>
       </div>
     </div>
   );

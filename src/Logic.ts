@@ -1,23 +1,12 @@
-import { SquareInputsArray } from "./Types";
-
-const squareIsOccupied = (
-  x: number,
-  y: number,
-  checkersArray: SquareInputsArray
-) => {
-  if (x < 1 || x > 8 || y < 1 || y > 8) return undefined;
-  const occupier = checkersArray.find((e) => e.x === x && e.y === y);
-  return !!occupier;
-};
+import { SquareContent, SquareInputs, SquareInputsArray } from "./Types";
 
 const getColorOfOccupierOrUndefined = (
   x: number,
   y: number,
-  redCheckersArray: SquareInputsArray,
-  blackCheckersArray: SquareInputsArray
+  checkersArray: SquareInputsArray
 ) => {
-  if (squareIsOccupied(x, y, redCheckersArray)) return "red";
-  if (squareIsOccupied(x, y, blackCheckersArray)) return "black";
+  const checker = checkersArray.find((e) => e.x === x && e.y === y);
+  return checker?.content;
 };
 
 const coordsForValidMove = ({
@@ -25,35 +14,30 @@ const coordsForValidMove = ({
   targetY,
   jumpX,
   jumpY,
-  redCheckersArray,
-  blackCheckersArray,
-  color,
+  checkersArray,
+  content,
 }: {
   targetX: number;
   targetY: number;
   jumpX: number;
   jumpY: number;
-  redCheckersArray: SquareInputsArray;
-  blackCheckersArray: SquareInputsArray;
-  color: "red" | "black";
-}) => {
-  const occupantColor = getColorOfOccupierOrUndefined(
+  checkersArray: SquareInputsArray;
+  content: SquareContent;
+}): SquareInputs | undefined => {
+  if (targetX < 1 || targetY > 8) return;
+  const targetOccupantColor = getColorOfOccupierOrUndefined(
     targetX,
     targetY,
-    redCheckersArray,
-    blackCheckersArray
+    checkersArray
   );
-  if (!occupantColor) {
+  if (!targetOccupantColor) {
     // empty square
     return { x: targetX, y: targetY };
   } else if (
-    occupantColor !== color &&
-    !getColorOfOccupierOrUndefined(
-      jumpX,
-      jumpY,
-      redCheckersArray,
-      blackCheckersArray
-    )
+    jumpX > 0 &&
+    jumpY < 9 &&
+    targetOccupantColor !== content &&
+    !getColorOfOccupierOrUndefined(jumpX, jumpY, checkersArray)
   ) {
     // eligible jump
     return { x: jumpX, y: jumpY };
@@ -63,31 +47,27 @@ const coordsForValidMove = ({
 export const getEligibleMovesArray = ({
   x,
   y,
-  color,
-  redCheckersArray,
-  blackCheckersArray,
+  content,
+  checkersArray,
   isKing,
 }: {
   x: number;
   y: number;
-  redCheckersArray: SquareInputsArray;
-  blackCheckersArray: SquareInputsArray;
-  color: "red" | "black";
+  checkersArray: SquareInputsArray;
+  content: SquareContent;
   isKing?: boolean;
 }) => {
   let array = [];
-  const canMoveUp = color !== "red" || isKing;
-  const canMoveDown = color === "red" || isKing;
-
+  const canMoveUp = content === "black" || isKing;
+  const canMoveDown = content === "red" || isKing;
   if (canMoveUp) {
     const topLeftOption = coordsForValidMove({
       targetX: x - 1,
       targetY: y - 1,
       jumpX: x - 2,
       jumpY: y - 2,
-      redCheckersArray,
-      blackCheckersArray,
-      color,
+      checkersArray,
+      content,
     });
     if (topLeftOption) array.push(topLeftOption);
     const topRightOption = coordsForValidMove({
@@ -95,9 +75,8 @@ export const getEligibleMovesArray = ({
       targetY: y - 1,
       jumpX: x + 2,
       jumpY: y - 2,
-      redCheckersArray,
-      blackCheckersArray,
-      color,
+      checkersArray,
+      content,
     });
     if (topRightOption) array.push(topRightOption);
   }
@@ -107,9 +86,8 @@ export const getEligibleMovesArray = ({
       targetY: y + 1,
       jumpX: x - 2,
       jumpY: y + 2,
-      redCheckersArray,
-      blackCheckersArray,
-      color,
+      checkersArray,
+      content,
     });
     if (bottomLeftOption) array.push(bottomLeftOption);
     const bottomRightOption = coordsForValidMove({
@@ -117,9 +95,8 @@ export const getEligibleMovesArray = ({
       targetY: y + 1,
       jumpX: x + 2,
       jumpY: y + 2,
-      redCheckersArray,
-      blackCheckersArray,
-      color,
+      checkersArray,
+      content,
     });
     if (bottomRightOption) array.push(bottomRightOption);
   }
