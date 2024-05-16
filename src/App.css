@@ -65,5 +65,15 @@ div {
   width: 70%;
   border-color: #9ecaed;
   box-shadow: 0 0 10px #9ecaed;
-  /* box-sizing: border-box; */
+}
+
+.Checker-droppable {
+  height: 100%;
+  width: 100%;
+  background-color: #33cc33;
+  border-radius: unset;
+  border-width: unset;
+  border-style: unset;
+  border-color: #33cc33;
+  box-shadow: 0 0 10px #33cc33;
 }

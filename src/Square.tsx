@@ -1,4 +1,10 @@
-import { SquareContent, SetHoverCoordinates, SquareInputs } from "./Types";
+import { useState } from "react";
+import {
+  SquareContent,
+  SetHoverCoordinates,
+  SquareInputs,
+  DragValues,
+} from "./Types";
 
 export default function Square({
   x,
@@ -9,6 +15,7 @@ export default function Square({
   setHoverCoordinates,
   setStartDragging,
   squareBeingDragged,
+  dragValues,
 }: {
   x: number;
   y: number;
@@ -18,8 +25,8 @@ export default function Square({
   setHoverCoordinates: (coords: SetHoverCoordinates) => void;
   setStartDragging: (arg0: SquareInputs) => void;
   squareBeingDragged: SquareInputs | undefined;
+  dragValues: DragValues;
 }) {
-  // const [isDraggingSource, setIsDraggingSource] = setState(false);
   const isOnEvenRow = Math.ceil(index / 8 || 1) % 2 === 0;
   const isOnEvenColumn = (index % 8) % 2 === 0;
   const isLight =
@@ -37,19 +44,24 @@ export default function Square({
 
   const handleMouseLeave = () => {
     if (content !== "red" && content !== "black") return;
+    if (isThisCheckerBeingDragged) return;
     setHoverCoordinates(undefined);
   };
 
   const handleMouseDown = (squareInputs: SquareInputs) => {
     if (content !== "red" && content !== "black") return;
     setStartDragging(squareInputs);
-    // setIsDraggingSource(true);
   };
 
   const isThisCheckerBeingDragged =
     squareBeingDragged &&
     squareBeingDragged.x === x &&
     squareBeingDragged.y === y;
+
+  const isCheckerDroppable =
+    content === "eligibleDestination" &&
+    dragValues.hoverX === x &&
+    dragValues.hoverY === y;
 
   return (
     <div
@@ -61,13 +73,12 @@ export default function Square({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onMouseDown={() => handleMouseDown({ x, y, content, isKing })}
-          className={`Checker Checker-${content}`}
+          className={`Checker Checker-${
+            isCheckerDroppable ? "droppable" : content
+          }`}
           style={{ display: isThisCheckerBeingDragged ? "none" : "" }}
         ></div>
       )}
     </div>
   );
-}
-function setState(arg0: boolean): [any, any] {
-  throw new Error("Function not implemented.");
 }

@@ -1,21 +1,26 @@
-import React, { ReactNode, RefObject, useRef, useState } from "react";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
 import "./App.css";
 import Square from "./Square";
 import {
+  DragValues,
   SetHoverCoordinates,
   SquareContent,
   SquareInputs,
   SquareInputsArray,
   initCheckersArray,
+  initDragValues,
 } from "./Types";
 import { getEligibleMovesArray } from "./Logic";
 
 export default function App() {
+  // state
   const [checkersArray, setCheckersArray] = useState(initCheckersArray);
-  const [dragValues, setDragValues] = useState({ top: 0, left: 0, width: 0 });
+  const [dragValues, setDragValues] = useState<DragValues>(initDragValues);
   const [squareBeingDragged, setSquareBeingDragged] = useState<
     SquareInputs | undefined
   >(undefined);
+
+  // refs
   const ref = useRef<HTMLDivElement | null>(null);
   const rectRef = useRef<DOMRect | undefined>();
 
@@ -26,7 +31,7 @@ export default function App() {
 
   const setStartDragging = (square: SquareInputs) => {
     setSquareBeingDragged(square);
-    rectRef.current = ref.current?.getBoundingClientRect();
+    rectRef.current = ref.current?.getBoundingClientRect(); // update the position of the board relative the viewport
   };
 
   const getSquaresArray = () => {
@@ -43,6 +48,7 @@ export default function App() {
           setHoverCoordinates,
           setStartDragging,
           squareBeingDragged,
+          dragValues,
         })
       );
     }
@@ -72,26 +78,58 @@ export default function App() {
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (!squareBeingDragged) return;
     const width = rectRef.current ? (rectRef.current.width / 8) * 0.7 : 0;
+    const baseX = e.pageY - (rectRef.current?.top || 0);
+    const baseY = e.pageX - (rectRef.current?.left || 0);
+
+    const hoverX = Math.ceil((baseY / (rectRef.current?.width || 1)) * 8);
+    const hoverY = Math.ceil((baseX / (rectRef.current?.height || 1)) * 8);
     setDragValues({
-      top: e.pageY - (rectRef.current?.top || 0) - width / 2,
-      left: e.pageX - (rectRef.current?.left || 0) - width / 2,
+      top: baseX - width / 2,
+      left: baseY - width / 2,
       width,
+      hoverX,
+      hoverY,
     });
   };
 
-  document.addEventListener("mouseup", function handleMouseDown(e) {
-    console.log("mouse up");
-    console.log({ x: e.pageX - (rectRef.current?.left || 0) });
-    setSquareBeingDragged(undefined);
-  });
+  const handleMouseUp = () => {
+    const targetContent = checkersArray.find(
+      (e) => e.x === dragValues.hoverX && e.y === dragValues.hoverY
+    )?.content;
+    if (targetContent === "eligibleDestination") {
+      const sourceX = squareBeingDragged?.x;
+      const sourceY = squareBeingDragged?.y;
+      const newCheckersArray = checkersArray.filter(
+        (e) =>
+          e.content !== "eligibleDestination" &&
+          ((e.x !== sourceX && e.y === sourceY) ||
+            (e.x === sourceX && e.y !== sourceY) ||
+            (e.x !== sourceX && e.y !== sourceY))
+      );
+      // .map((e) => Object.assign({}, e));
+      console.log({ newCheckersArray });
+      newCheckersArray.push({
+        x: dragValues.hoverX,
+        y: dragValues.hoverY,
+        content: squareBeingDragged?.content,
+      });
+      setCheckersArray(newCheckersArray);
+    }
+    setSquareBeingDragged(undefined); // reset square being dragged
+    setDragValues(initDragValues); // reset dragging values
+  };
 
   return (
     <div className="Container">
       <div className="Board-Outer">
         <div ref={ref} className="Board-Inner" onMouseMove={handleMouseMove}>
           {getSquaresArray()}
+
+          {/* Dragging Checker */}
           <div
+            onMouseUp={handleMouseUp}
             style={{
               height: dragValues.width,
               width: dragValues.width,
