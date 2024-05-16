@@ -1,4 +1,4 @@
-import React, { ReactNode, useRef, useState } from "react";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
 import "./App.css";
 import Square from "./Square";
 import {
@@ -20,6 +20,7 @@ export default function App() {
   const [squareBeingDragged, setSquareBeingDragged] = useState<
     SquareInputs | undefined
   >(undefined);
+  const [counterTime, setCounterTime] = useState("");
 
   // refs
   const ref = useRef<HTMLDivElement | null>(null);
@@ -140,19 +141,47 @@ export default function App() {
     setDragValues(initDragValues); // reset dragging values
   };
 
+  // game timer
+  useEffect(() => {
+    let counter = 0;
+    const getString = (value: number) => {
+      if (value === 0) return "00";
+      if (value < 10) return `0${value}`;
+      return value.toString();
+    };
+    const incrementSeconds = () => {
+      counter += 1;
+      const hours = Math.floor(counter / 3600);
+      const minutes = Math.floor(counter / 60);
+      const seconds = counter % 60;
+      setCounterTime(
+        `${getString(hours)}:${getString(minutes)}:${getString(seconds)}`
+      );
+      setTimeout(incrementSeconds, 1000);
+    };
+    incrementSeconds();
+  }, []);
+
   return (
     <div className="Container">
       <div>
-        <div
-          style={{ display: !isRedTurn ? "none" : "" }}
-          className="Turn-banner Turn-banner-red"
-        >
-          Rey's Turn
+        <div className="Side-space">
+          <div
+            style={{ display: !isRedTurn ? "none" : "" }}
+            className="Turn-banner Turn-banner-red"
+          >
+            Rey's Turn
+          </div>
         </div>
-
         <img src="rey.png" className="Headshot" alt="Rey" />
-        <div className="Checker Checker-red Checker-score">
-          {12 - checkersArray.filter((e) => e.content === "black").length}
+        <div className="Side-space">
+          <div className="Checker Checker-red Checker-score">
+            {12 - checkersArray.filter((e) => e.content === "black").length}
+          </div>
+          <div className="End-column">
+            <button className="Button-red">{counterTime}</button>
+            <button className="Button-red">Give in to the Dark Side</button>
+          </div>
         </div>
       </div>
       <div className="Board-Outer">
@@ -175,15 +204,23 @@ export default function App() {
         </div>
       </div>
       <div>
-        <div
-          style={{ display: isRedTurn ? "none" : "" }}
-          className="Turn-banner Turn-banner-black"
-        >
-          Kylo's Turn
+        <div className="Side-space">
+          <div
+            style={{ display: isRedTurn ? "none" : "" }}
+            className="Turn-banner Turn-banner-black"
+          >
+            Kylo's Turn
+          </div>
         </div>
         <img src="kylo.png" className="Headshot" alt="Kylo" />
-        <div className="Checker Checker-black Checker-score">
-          {12 - checkersArray.filter((e) => e.content === "red").length}
+        <div className="Side-space">
+          <div className="Checker Checker-black Checker-score">
+            {12 - checkersArray.filter((e) => e.content === "red").length}
+          </div>
+          <div className="End-column">
+            <button className="Button-black">Give in to the Light Side</button>
+            <button className="Button-black">Reset Game</button>
+          </div>
         </div>
       </div>
     </div>

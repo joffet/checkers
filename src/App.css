@@ -112,3 +112,31 @@ div {
   border: solid 4px red;
   color: white;
 }
+.Side-space {
+  min-width: 240px;
+}
+.End-column {
+  flex-direction: column;
+  justify-content: space-evenly;
+  margin-left: 20px;
+  width: 100px;
+  height: 100px;
+}
+
+.Button-black {
+  background-color: black;
+  border: solid 2px black;
+  color: white;
+  border-radius: 5px;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.Button-red {
+  background-color: red;
+  border: solid 2px red;
+  color: white;
+  border-radius: 5px;
+  padding: 5px;
+  cursor: pointer;
+}
