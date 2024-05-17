@@ -65,7 +65,7 @@ export const coordsToString = (square: SquareInputs): string => {
 };
 
 export const stringToCoords = (string: string) => {
-  return { x: string.charAt(0), y: string.charAt(1) };
+  return { x: parseInt(string.charAt(0)), y: parseInt(string.charAt(1)) };
 };
 
 export const getAllPotentialDestinationsForOneColor = (

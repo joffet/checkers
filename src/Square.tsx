@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   SquareContent,
   SetHoverCoordinates,
@@ -17,6 +16,7 @@ export default function Square({
   squareBeingDragged,
   dragValues,
   isRedTurn,
+  isAutoOpponent,
 }: {
   x: number;
   y: number;
@@ -28,6 +28,7 @@ export default function Square({
   squareBeingDragged: SquareInputs | undefined;
   dragValues: DragValues;
   isRedTurn: boolean;
+  isAutoOpponent: boolean;
 }) {
   const isOnEvenRow = Math.ceil(index / 8 || 1) % 2 === 0;
   const isOnEvenColumn = (index % 8) % 2 === 0;
@@ -36,6 +37,7 @@ export default function Square({
 
   const handleMouseEnter = () => {
     if (content !== "red" && content !== "black") return;
+    if (isAutoOpponent && isRedTurn) return;
     triggerPotentialDestinations({
       x,
       y,
@@ -46,11 +48,13 @@ export default function Square({
 
   const handleMouseLeave = () => {
     if (content !== "red" && content !== "black") return;
+    if (isAutoOpponent && isRedTurn) return;
     if (isThisCheckerBeingDragged) return;
     triggerPotentialDestinations(undefined);
   };
 
   const handleMouseDown = (squareInputs: SquareInputs) => {
+    if (isAutoOpponent && isRedTurn) return;
     if ((content === "red" && isRedTurn) || (content === "black" && !isRedTurn))
       setStartDragging(squareInputs);
   };

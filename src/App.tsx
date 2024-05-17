@@ -1,4 +1,10 @@
-import React, { ReactNode, useEffect, useRef, useState } from "react";
+import React, {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import "./App.css";
 import Square from "./Square";
 import {
@@ -14,6 +20,7 @@ import {
 import {
   coordsToString,
   getAllPotentialDestinationsForOneColor,
+  stringToCoords,
 } from "./PotentialDestinations";
 
 export default function App() {
@@ -28,6 +35,7 @@ export default function App() {
   const [currentDestinations, setCurrentDestinations] = useState<
     PotentialDestinations | undefined
   >();
+  const [isAutoOpponent, setIsAutoOpponent] = useState<boolean | undefined>();
 
   // refs
   const innerBoardRef = useRef<HTMLDivElement | null>(null);
@@ -59,18 +67,14 @@ export default function App() {
           squareBeingDragged,
           dragValues,
           isRedTurn,
+          isAutoOpponent: isAutoOpponent || false,
         })
       );
     }
     return array;
   };
 
-  const triggerPotentialDestinations = (square: SetHoverCoordinates) => {
-    if (
-      (square?.content === "red" && !isRedTurn) ||
-      (square?.content === "black" && isRedTurn)
-    )
-      return;
+  const resetPotentialDestinations = useCallback(() => {
     if (!currentDestinations)
       setCurrentDestinations(
         getAllPotentialDestinationsForOneColor(
@@ -78,6 +82,15 @@ export default function App() {
           checkersArray
         )
       );
+  }, [checkersArray, currentDestinations, isRedTurn]);
+
+  const triggerPotentialDestinations = (square: SetHoverCoordinates) => {
+    if (
+      (square?.content === "red" && !isRedTurn) ||
+      (square?.content === "black" && isRedTurn)
+    )
+      return;
+    resetPotentialDestinations();
     let eligibleDestinationsArray: SquareInputsArray = [];
     if (!!square)
       eligibleDestinationsArray = currentDestinations
@@ -115,45 +128,86 @@ export default function App() {
   };
 
   const handleMouseUp = () => {
-    const targetX = dragValues.hoverX;
-    const targetY = dragValues.hoverY;
-    const targetContent = checkersArray.find(
-      (e) => e.x === targetX && e.y === targetY
-    )?.content;
-    if (targetContent === "eligibleDestination") {
-      const sourceX = squareBeingDragged?.x || 0;
-      const sourceY = squareBeingDragged?.y || 0;
-
-      // check if the move was a jump
-      const isJump = Math.abs(targetX - (sourceX || 0)) > 1;
-      const jumpedCheckerCoords = {
-        x: sourceX > targetX ? sourceX - 1 : sourceX + 1,
-        y: sourceY > targetY ? sourceY - 1 : sourceY + 1,
-      };
-      const newCheckersArray = checkersArray.filter(
-        (e) =>
-          e.content !== "eligibleDestination" &&
-          !(e.x === sourceX && e.y === sourceY) &&
-          // if was a jump, then remove the jumped checker
-          !(
-            isJump &&
-            e.x === jumpedCheckerCoords.x &&
-            e.y === jumpedCheckerCoords.y
-          )
-      );
-      newCheckersArray.push({
-        x: targetX,
-        y: targetY,
-        content: squareBeingDragged?.content,
-      });
-      setCheckersArray(newCheckersArray);
-      setCurrentDestinations(undefined);
-      setIsRedTurn(!isRedTurn);
-    }
-
-    setSquareBeingDragged(undefined); // reset square being dragged
-    setDragValues(initDragValues); // reset dragging values
+    executeCheckerMove(
+      dragValues.hoverX,
+      dragValues.hoverY,
+      squareBeingDragged?.x || 0,
+      squareBeingDragged?.y || 0
+    );
   };
+
+  const executeCheckerMove = useCallback(
+    (targetX: number, targetY: number, sourceX: number, sourceY: number) => {
+      console.log("here");
+      const targetContent = checkersArray.find(
+        (e) => e.x === targetX && e.y === targetY
+      )?.content;
+      if (targetContent === "eligibleDestination" || isAutoOpponent) {
+        // check if the move was a jump
+        const isJump = Math.abs(targetX - (sourceX || 0)) > 1;
+        const jumpedCheckerCoords = {
+          x: sourceX > targetX ? sourceX - 1 : sourceX + 1,
+          y: sourceY > targetY ? sourceY - 1 : sourceY + 1,
+        };
+        const newCheckersArray = checkersArray.filter(
+          (e) =>
+            e.content !== "eligibleDestination" &&
+            !(e.x === sourceX && e.y === sourceY) &&
+            // if was a jump, then remove the jumped checker
+            !(
+              isJump &&
+              e.x === jumpedCheckerCoords.x &&
+              e.y === jumpedCheckerCoords.y
+            )
+        );
+        const newSquare = {
+          x: targetX,
+          y: targetY,
+          content: squareBeingDragged?.content || "red", // red for auto move
+          isKing: isNowKing({
+            x: targetX,
+            y: targetY,
+            content: squareBeingDragged?.content || "red", // red for auto move
+          }),
+        };
+        newCheckersArray.push(newSquare);
+        setCheckersArray(newCheckersArray);
+        setCurrentDestinations(undefined);
+        setIsRedTurn(!isRedTurn);
+      }
+
+      setSquareBeingDragged(undefined); // reset square being dragged
+      setDragValues(initDragValues); // reset dragging values
+    },
+    [checkersArray, isAutoOpponent, isRedTurn, squareBeingDragged?.content]
+  );
+
+  const isNowKing = (square: SquareInputs) => {
+    const { y, content } = square;
+    return (content === "red" && y === 8) || (content === "black" && y === 1);
+  };
+
+  // auto player turn
+  useEffect(() => {
+    if (!isRedTurn || !isAutoOpponent) return;
+    setTimeout(() => {
+      resetPotentialDestinations();
+      if (!currentDestinations) return;
+      const keys = Object.keys(currentDestinations);
+      const key = keys[Math.floor(Math.random() * (keys.length - 1))];
+      const checkerOptions = currentDestinations[key];
+      const target =
+        checkerOptions[Math.floor(Math.random() * (checkerOptions.length - 1))];
+      const source = stringToCoords(key);
+      executeCheckerMove(target.x, target.y, source.x, source.y);
+    }, 500);
+  }, [
+    currentDestinations,
+    executeCheckerMove,
+    isAutoOpponent,
+    isRedTurn,
+    resetPotentialDestinations,
+  ]);
 
   // game timer
   useEffect(() => {
@@ -184,6 +238,10 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  let upperPhotoString = "question.png";
+  if (isAutoOpponent === true) upperPhotoString = "r2d2.png";
+  if (isAutoOpponent === false) upperPhotoString = "rey.png";
+
   return (
     <div className="Container">
       <div>
@@ -192,10 +250,10 @@ export default function App() {
             style={{ display: !isRedTurn ? "none" : "" }}
             className="Turn-banner Turn-banner-red"
           >
-            Rey's Turn
+            {`${isAutoOpponent === true ? "R2D2's Auto Move" : "Rey's Turn"}`}
           </div>
         </div>
-        <img src="rey.png" className="Headshot" alt="Rey" />
+        <img src={upperPhotoString} className="Headshot" alt="Rey" />
         <div className="Side-space">
           <div className="Checker Checker-red Checker-score">
             {12 - checkersArray.filter((e) => e.content === "black").length}
@@ -246,6 +304,33 @@ export default function App() {
           <div className="End-column">
             <button className="Button-black">Give in to the Light Side</button>
             <button className="Button-black">Reset Game</button>
+          </div>
+        </div>
+      </div>
+      <div
+        className="Overlay"
+        style={{ display: isAutoOpponent === undefined ? "" : "none" }}
+      >
+        <div className="Modal">
+          <div className="Modal-line">Welcome to Star Checkers</div>
+          <div className="Modal-line">You are playing the cunning Kylo Ren</div>
+          <div className="Modal-line">
+            Your opponent can either be a human playing Rey, or the computer
+            played by R2D2. Click the headshot to make your selection:
+          </div>
+          <div className="Modal-line">
+            <img
+              onMouseDown={() => setIsAutoOpponent(false)}
+              src="rey.png"
+              className="Headshot Clickable"
+              alt="Rey"
+            />
+            <img
+              onMouseDown={() => setIsAutoOpponent(true)}
+              src="r2d2.png"
+              className="Headshot Clickable"
+              alt="Rey"
+            />
           </div>
         </div>
       </div>
