@@ -5,7 +5,7 @@ div {
 }
 
 .Container {
-  background-image: url("./felt.jpg");
+  background-image: url("../public/felt.jpg");
   background-repeat: repeat;
   width: 100%;
   min-height: 100vh;
@@ -19,6 +19,7 @@ div {
   left: 0;
   width: 100%;
   height: 100%;
+  background-color: rgba(255, 255, 255, 0.35);
 }
 
 .Modal {
@@ -37,7 +38,7 @@ div {
 }
 
 .Board-Outer {
-  background-image: url("./oak.jpg");
+  background-image: url("../public/oak.jpg");
   background-repeat: repeat;
   width: 80%;
   aspect-ratio: 1;

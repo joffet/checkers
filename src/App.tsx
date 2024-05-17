@@ -348,10 +348,13 @@ export default function App() {
           className="Modal"
         >
           <div className="Modal-line">Welcome to Star Checkers</div>
-          <div className="Modal-line">You are playing the cunning Kylo Ren</div>
           <div className="Modal-line">
-            Your opponent can either be a human playing Rey, or the computer
-            played by R2D2. Click the headshot to make your selection:
+            You are the cunning Kylo Ren, playing Black
+          </div>
+          <div className="Modal-line">
+            Your opponent can either be a human represented by Rey, or the
+            computer presented by R2D2. Click the headshot below to make your
+            selection:
           </div>
           <div className="Modal-line">
             <img
@@ -378,12 +381,7 @@ export default function App() {
           className="Modal"
         >
           <div className="Modal-line">
-            <img
-              onMouseDown={() => setIsAutoOpponent(false)}
-              src={upperPhotoString}
-              className="Headshot"
-              alt="Rey"
-            />
+            <img src={upperPhotoString} className="Headshot" alt="Rey" />
             <div className="Modal-line">
               {isAutoOpponent === true ? "R2D2 Wins!" : "Rey Wins!"}
             </div>
