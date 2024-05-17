@@ -47,6 +47,9 @@ export default function App() {
     return square?.content;
   };
 
+  const swing = new Audio("./swing.mp3");
+  const blaster = new Audio("./blaster.mp3");
+
   const setStartDragging = (square: SquareInputs) => {
     setSquareBeingDragged(square);
     rectRef.current = innerBoardRef.current?.getBoundingClientRect(); // update the position of the board relative the viewport
@@ -145,6 +148,11 @@ export default function App() {
       if (targetContent === "eligibleDestination" || isAutoOpponent) {
         // check if the move was a jump
         const isJump = Math.abs(targetX - (sourceX || 0)) > 1;
+        if (isJump) {
+          blaster.play();
+        } else {
+          swing.play();
+        }
         const jumpedCheckerCoords = {
           x: sourceX > targetX ? sourceX - 1 : sourceX + 1,
           y: sourceY > targetY ? sourceY - 1 : sourceY + 1,
@@ -238,6 +246,14 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const showModalStartup = isAutoOpponent === undefined;
+  const showModalRedWins =
+    checkersArray.filter((e) => e.content === "black").length === 0 ||
+    isSurrendered === "black";
+  const showModalBlackWins =
+    checkersArray.filter((e) => e.content === "red").length === 0 ||
+    isSurrendered === "red";
+
   const resetGame = () => {
     setIsAutoOpponent(undefined);
     setIsRedTurn(false);
@@ -247,13 +263,6 @@ export default function App() {
   let upperPhotoString = "question.png";
   if (isAutoOpponent === true) upperPhotoString = "r2d2.png";
   if (isAutoOpponent === false) upperPhotoString = "rey.png";
-  const showModalStartup = isAutoOpponent === undefined;
-  const showModalRedWins =
-    checkersArray.filter((e) => e.content === "black").length === 0 ||
-    isSurrendered === "black";
-  const showModalBlackWins =
-    checkersArray.filter((e) => e.content === "red").length === 0 ||
-    isSurrendered === "red";
 
   return (
     <div className="Container">
