@@ -36,6 +36,7 @@ export default function App() {
     PotentialDestinations | undefined
   >();
   const [isAutoOpponent, setIsAutoOpponent] = useState<boolean | undefined>();
+  const [isSurrendered, setIsSurrendered] = useState<string | undefined>();
 
   // refs
   const innerBoardRef = useRef<HTMLDivElement | null>(null);
@@ -138,7 +139,6 @@ export default function App() {
 
   const executeCheckerMove = useCallback(
     (targetX: number, targetY: number, sourceX: number, sourceY: number) => {
-      console.log("here");
       const targetContent = checkersArray.find(
         (e) => e.x === targetX && e.y === targetY
       )?.content;
@@ -238,9 +238,21 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const resetGame = () => {
+    setIsRedTurn(false);
+    setCheckersArray(initCheckersArray);
+  };
+
   let upperPhotoString = "question.png";
   if (isAutoOpponent === true) upperPhotoString = "r2d2.png";
   if (isAutoOpponent === false) upperPhotoString = "rey.png";
+  const showModalStartup = isAutoOpponent === undefined;
+  const showModalRedWins =
+    checkersArray.filter((e) => e.content === "black").length === 0 ||
+    isSurrendered === "black";
+  const showModalBlackWins =
+    checkersArray.filter((e) => e.content === "red").length === 0 ||
+    isSurrendered === "red";
 
   return (
     <div className="Container">
@@ -260,7 +272,12 @@ export default function App() {
           </div>
           <div className="End-column">
             <button className="Button-red">{counterTime}</button>
-            <button className="Button-red">Give in to the Dark Side</button>
+            <button
+              onMouseDown={() => setIsSurrendered("red")}
+              className="Button-red"
+            >
+              Give in to the Dark Side
+            </button>
           </div>
         </div>
       </div>
@@ -302,16 +319,34 @@ export default function App() {
             {12 - checkersArray.filter((e) => e.content === "red").length}
           </div>
           <div className="End-column">
-            <button className="Button-black">Give in to the Light Side</button>
-            <button className="Button-black">Reset Game</button>
+            <button
+              onMouseDown={() => setIsSurrendered("black")}
+              className="Button-black Clickable"
+            >
+              Give in to the Light Side
+            </button>
+            <button onMouseDown={resetGame} className="Button-black Clickable">
+              Reset Game
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Modal Section */}
       <div
         className="Overlay"
-        style={{ display: isAutoOpponent === undefined ? "" : "none" }}
+        style={{
+          display:
+            showModalBlackWins || showModalRedWins || showModalStartup
+              ? ""
+              : "none",
+        }}
       >
-        <div className="Modal">
+        {/* Startup */}
+        <div
+          style={{ display: showModalStartup ? "" : "none" }}
+          className="Modal"
+        >
           <div className="Modal-line">Welcome to Star Checkers</div>
           <div className="Modal-line">You are playing the cunning Kylo Ren</div>
           <div className="Modal-line">
@@ -331,6 +366,46 @@ export default function App() {
               className="Headshot Clickable"
               alt="Rey"
             />
+          </div>
+        </div>
+
+        {/* Red Wins */}
+        <div
+          style={{
+            display: showModalRedWins ? "" : "none",
+            flexDirection: "row",
+          }}
+          className="Modal"
+        >
+          <div className="Modal-line">
+            <img
+              onMouseDown={() => setIsAutoOpponent(false)}
+              src={upperPhotoString}
+              className="Headshot"
+              alt="Rey"
+            />
+            <div className="Modal-line">
+              {isAutoOpponent === true ? "R2D2 Wins!" : "Rey Wins!"}
+            </div>
+          </div>
+        </div>
+
+        {/* Black Wins */}
+        <div
+          style={{
+            display: showModalBlackWins ? "" : "none",
+            flexDirection: "row",
+          }}
+          className="Modal"
+        >
+          <div className="Modal-line">
+            <img
+              onMouseDown={() => setIsAutoOpponent(false)}
+              src="kylo.png"
+              className="Headshot"
+              alt="Kylo"
+            />
+            <div className="Modal-line">Kylo Wins!</div>
           </div>
         </div>
       </div>
