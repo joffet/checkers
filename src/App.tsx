@@ -352,24 +352,25 @@ export default function App() {
           <div className="Modal-line">
             You are the cunning Kylo Ren, playing Black
           </div>
-          <div className="Modal-line">
-            Your opponent can either be a human represented by Rey, or the
-            computer presented by R2D2. Click the headshot below to make your
-            selection:
-          </div>
+          <div className="Modal-line">Your opponent can either be:</div>
+
           <div className="Modal-line">
             <img
               onMouseDown={() => setIsAutoOpponent(false)}
               src="rey.png"
-              className="Headshot Clickable"
+              className="Headshot Clickable Border-highlight"
               alt="Rey"
             />
             <img
               onMouseDown={() => setIsAutoOpponent(true)}
               src="r2d2.png"
-              className="Headshot Clickable"
+              className="Headshot Clickable Border-highlight"
               alt="Rey"
             />
+          </div>
+          <div style={{ marginTop: -10 }} className="Modal-line">
+            <div style={{ marginRight: 60 }}>Human</div>
+            <div>Computer</div>
           </div>
         </div>
 

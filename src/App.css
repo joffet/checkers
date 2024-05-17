@@ -172,3 +172,11 @@ div {
 .Clickable {
   cursor: pointer;
 }
+
+.Border-highlight {
+  border: solid 4px yellow;
+}
+
+.Border-highlight:hover {
+  border-color: red;
+}
