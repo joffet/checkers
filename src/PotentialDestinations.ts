@@ -72,6 +72,8 @@ export const getAllPotentialDestinationsForOneColor = (
   color: string,
   checkersArray: SquareInputsArray
 ) => {
+  // This reduce function has some critial typescript errors that were taking a long time to resolve. I rewrote it as a loop to get the function working. I'll come back, if I have time, to resolve the TS errors and replace the loop.
+
   // return checkersArray.reduce(
   //   (accumulator: PotentialDestinations, item: SquareInputs) => {
   //     const arrayOfDestinations = getPotentialDestinationsForOneSquare(item, checkersArray);

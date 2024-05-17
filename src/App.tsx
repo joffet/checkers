@@ -239,6 +239,7 @@ export default function App() {
   }, []);
 
   const resetGame = () => {
+    setIsAutoOpponent(undefined);
     setIsRedTurn(false);
     setCheckersArray(initCheckersArray);
   };
