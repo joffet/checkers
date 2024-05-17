@@ -3,6 +3,7 @@ import "./App.css";
 import Square from "./Square";
 import {
   DragValues,
+  PotentialDestinations,
   SetHoverCoordinates,
   SquareContent,
   SquareInputs,
@@ -10,7 +11,7 @@ import {
   initCheckersArray,
   initDragValues,
 } from "./Types";
-import { getEligibleMovesArray } from "./Logic";
+import { getAllPotentialDestinationsForOneColor } from "./PotentialDestinations";
 
 export default function App() {
   // state
@@ -23,8 +24,11 @@ export default function App() {
   const [counterTime, setCounterTime] = useState("");
 
   // refs
-  const ref = useRef<HTMLDivElement | null>(null);
+  const innerBoardRef = useRef<HTMLDivElement | null>(null);
   const rectRef = useRef<DOMRect | undefined>();
+  const potentialDestinationsCurrentTurnRef = useRef<
+    PotentialDestinations | undefined
+  >();
 
   const getSquareContent = (x: number, y: number): SquareContent => {
     const square = checkersArray.find((e) => e.x === x && e.y === y);
@@ -33,7 +37,7 @@ export default function App() {
 
   const setStartDragging = (square: SquareInputs) => {
     setSquareBeingDragged(square);
-    rectRef.current = ref.current?.getBoundingClientRect(); // update the position of the board relative the viewport
+    rectRef.current = innerBoardRef.current?.getBoundingClientRect(); // update the position of the board relative the viewport
   };
 
   const getSquaresArray = () => {
@@ -66,13 +70,13 @@ export default function App() {
       return;
     let eligibleDestinationsArray: SquareInputsArray = [];
     if (square) {
-      eligibleDestinationsArray = getEligibleMovesArray({
-        x: square.x,
-        y: square.y,
-        content: square.content,
-        checkersArray,
-        isKing: square.isKing,
-      });
+      // eligibleDestinationsArray = getEligibleMovesArray({
+      //   x: square.x,
+      //   y: square.y,
+      //   content: square.content,
+      //   checkersArray,
+      //   isKing: square.isKing,
+      // });
     }
     const newCheckersArray = checkersArray.filter(
       (e) => e.content !== "eligibleDestination"
@@ -135,6 +139,11 @@ export default function App() {
         content: squareBeingDragged?.content,
       });
       setCheckersArray(newCheckersArray);
+      potentialDestinationsCurrentTurnRef.current =
+        getAllPotentialDestinationsForOneColor(
+          isRedTurn ? "black" : "red",
+          checkersArray
+        );
       setIsRedTurn(!isRedTurn);
     }
     setSquareBeingDragged(undefined); // reset square being dragged
@@ -162,6 +171,13 @@ export default function App() {
     incrementSeconds();
   }, []);
 
+  // get initial potential destinations
+  useEffect(() => {
+    potentialDestinationsCurrentTurnRef.current =
+      getAllPotentialDestinationsForOneColor("black", checkersArray);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="Container">
       <div>
@@ -185,7 +201,11 @@ export default function App() {
         </div>
       </div>
       <div className="Board-Outer">
-        <div ref={ref} className="Board-Inner" onMouseMove={handleMouseMove}>
+        <div
+          ref={innerBoardRef}
+          className="Board-Inner"
+          onMouseMove={handleMouseMove}
+        >
           {getSquaresArray()}
 
           {/* Dragging Checker */}

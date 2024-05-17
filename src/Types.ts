@@ -33,6 +33,20 @@ export const initDragValues = {
   hoverY: 0,
 };
 
+export const moveDifferentials = [
+  { x: -1, y: -1 },
+  { x: 1, y: -1 },
+  { x: -1, y: 1 },
+  { x: 1, y: 1 },
+];
+
+export const jumpDifferentials = [
+  { x: -2, y: -2 },
+  { x: 2, y: -2 },
+  { x: -2, y: 2 },
+  { x: 2, y: 2 },
+];
+
 export type SquareInputs = {
   x: number;
   y: number;
@@ -53,4 +67,8 @@ export type DragValues = {
   width: number;
   hoverX: number;
   hoverY: number;
+};
+
+export type PotentialDestinations = {
+  [key: string]: SquareInputsArray;
 };
