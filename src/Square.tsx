@@ -12,7 +12,7 @@ export default function Square({
   isKing,
   index,
   content,
-  setHoverCoordinates,
+  triggerPotentialDestinations,
   setStartDragging,
   squareBeingDragged,
   dragValues,
@@ -23,7 +23,7 @@ export default function Square({
   isKing?: boolean | undefined;
   index: number;
   content: SquareContent;
-  setHoverCoordinates: (coords: SetHoverCoordinates) => void;
+  triggerPotentialDestinations: (coords: SetHoverCoordinates) => void;
   setStartDragging: (arg0: SquareInputs) => void;
   squareBeingDragged: SquareInputs | undefined;
   dragValues: DragValues;
@@ -36,7 +36,7 @@ export default function Square({
 
   const handleMouseEnter = () => {
     if (content !== "red" && content !== "black") return;
-    setHoverCoordinates({
+    triggerPotentialDestinations({
       x,
       y,
       content,
@@ -47,7 +47,7 @@ export default function Square({
   const handleMouseLeave = () => {
     if (content !== "red" && content !== "black") return;
     if (isThisCheckerBeingDragged) return;
-    setHoverCoordinates(undefined);
+    triggerPotentialDestinations(undefined);
   };
 
   const handleMouseDown = (squareInputs: SquareInputs) => {

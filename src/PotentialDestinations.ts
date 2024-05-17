@@ -29,25 +29,34 @@ const getTargetSquare = (
   );
 };
 
+export const isSquareOpen = (square: SquareInputs | undefined) => {
+  if (!square) return false;
+  return square?.content !== "red" && square?.content !== "black";
+};
+
 const getPotentialDestinationsForOneSquare = (
   square: SquareInputs,
   checkersArray: SquareInputsArray
 ) => {
   const array = [];
   const oppositeColor = square.content === "red" ? "black" : "red";
-  let isJump = false;
   for (let index = 0; index < 4; index++) {
     let moveTarget = getTargetSquare(square, index, checkersArray, false);
-    if (moveTarget?.content === square.content) return [];
+
+    if (moveTarget?.content === square.content) continue; // occupied by same color - invalid
     if (moveTarget?.content === oppositeColor) {
-      isJump = true;
-      moveTarget = getTargetSquare(square, index, checkersArray, true);
+      // occupied by opposite color
+      moveTarget = getTargetSquare(square, index, checkersArray, true); // check for opening at jump destinations
+      if (isSquareOpen(moveTarget)) {
+        return [moveTarget]; // return just this target if jump is valid
+      } else {
+        moveTarget = undefined; // if jump invalid, then remove target
+      }
     }
-    if (moveTarget?.content !== "red" && moveTarget?.content !== "black") {
-      if (isJump && !!moveTarget) return [moveTarget];
-    }
+
     if (!!moveTarget) array.push(moveTarget);
   }
+
   return array;
 };
 
@@ -75,22 +84,23 @@ export const getAllPotentialDestinationsForOneColor = (
   // );
   const result: PotentialDestinations | {} = {};
   for (let index = 0; index < checkersArray.length; index++) {
-    const item = checkersArray[index];
-    if (item.content !== color) continue;
+    const square = checkersArray[index];
+    if (square.content !== color) continue;
+
     const arrayOfDestinations = getPotentialDestinationsForOneSquare(
-      item,
+      square,
       checkersArray
     );
+
     if (
       arrayOfDestinations[0] &&
-      Math.abs(arrayOfDestinations[0].x - item.x) > 1
+      Math.abs(arrayOfDestinations[0].x - square.x) > 1
     )
-      return { [coordsToString(item)]: arrayOfDestinations }; // is a jump
+      return { [coordsToString(square)]: arrayOfDestinations }; // is a jump
     if (arrayOfDestinations.length > 0) {
       // @ts-ignore
-      result[coordsToString(item)] = arrayOfDestinations;
+      result[coordsToString(square)] = arrayOfDestinations;
     }
   }
-  console.log({ result, color });
   return result;
 };

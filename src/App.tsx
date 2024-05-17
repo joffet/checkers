@@ -11,7 +11,10 @@ import {
   initCheckersArray,
   initDragValues,
 } from "./Types";
-import { getAllPotentialDestinationsForOneColor } from "./PotentialDestinations";
+import {
+  coordsToString,
+  getAllPotentialDestinationsForOneColor,
+} from "./PotentialDestinations";
 
 export default function App() {
   // state
@@ -22,13 +25,13 @@ export default function App() {
     SquareInputs | undefined
   >(undefined);
   const [counterTime, setCounterTime] = useState("");
+  const [currentDestinations, setCurrentDestinations] = useState<
+    PotentialDestinations | undefined
+  >();
 
   // refs
   const innerBoardRef = useRef<HTMLDivElement | null>(null);
   const rectRef = useRef<DOMRect | undefined>();
-  const potentialDestinationsCurrentTurnRef = useRef<
-    PotentialDestinations | undefined
-  >();
 
   const getSquareContent = (x: number, y: number): SquareContent => {
     const square = checkersArray.find((e) => e.x === x && e.y === y);
@@ -51,7 +54,7 @@ export default function App() {
           y,
           index,
           content: getSquareContent(x, y),
-          setHoverCoordinates,
+          triggerPotentialDestinations,
           setStartDragging,
           squareBeingDragged,
           dragValues,
@@ -62,31 +65,36 @@ export default function App() {
     return array;
   };
 
-  const setHoverCoordinates = (square: SetHoverCoordinates) => {
+  const triggerPotentialDestinations = (square: SetHoverCoordinates) => {
     if (
       (square?.content === "red" && !isRedTurn) ||
       (square?.content === "black" && isRedTurn)
     )
       return;
+    if (!currentDestinations)
+      setCurrentDestinations(
+        getAllPotentialDestinationsForOneColor(
+          isRedTurn ? "red" : "black",
+          checkersArray
+        )
+      );
     let eligibleDestinationsArray: SquareInputsArray = [];
-    if (square) {
-      // eligibleDestinationsArray = getEligibleMovesArray({
-      //   x: square.x,
-      //   y: square.y,
-      //   content: square.content,
-      //   checkersArray,
-      //   isKing: square.isKing,
-      // });
-    }
+    if (!!square)
+      eligibleDestinationsArray = currentDestinations
+        ? currentDestinations[coordsToString(square as SquareInputs)]
+        : [];
+
     const newCheckersArray = checkersArray.filter(
       (e) => e.content !== "eligibleDestination"
     );
-    for (let index = 0; index < eligibleDestinationsArray.length; index++) {
-      const squareData = Object.assign({}, eligibleDestinationsArray[index]);
-      squareData.content = "eligibleDestination";
-      newCheckersArray.push(squareData);
+    if (eligibleDestinationsArray) {
+      for (let index = 0; index < eligibleDestinationsArray.length; index++) {
+        const squareData = Object.assign({}, eligibleDestinationsArray[index]);
+        squareData.content = "eligibleDestination";
+        newCheckersArray.push(squareData);
+      }
+      setCheckersArray(newCheckersArray);
     }
-    setCheckersArray(newCheckersArray);
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
@@ -139,13 +147,10 @@ export default function App() {
         content: squareBeingDragged?.content,
       });
       setCheckersArray(newCheckersArray);
-      potentialDestinationsCurrentTurnRef.current =
-        getAllPotentialDestinationsForOneColor(
-          isRedTurn ? "black" : "red",
-          checkersArray
-        );
+      setCurrentDestinations(undefined);
       setIsRedTurn(!isRedTurn);
     }
+
     setSquareBeingDragged(undefined); // reset square being dragged
     setDragValues(initDragValues); // reset dragging values
   };
@@ -173,8 +178,9 @@ export default function App() {
 
   // get initial potential destinations
   useEffect(() => {
-    potentialDestinationsCurrentTurnRef.current =
-      getAllPotentialDestinationsForOneColor("black", checkersArray);
+    setCurrentDestinations(
+      getAllPotentialDestinationsForOneColor("black", checkersArray)
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
